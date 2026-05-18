@@ -1,8 +1,8 @@
 {
-  "id": "talespire-dice-test",
+  "id": "talespire-dice-tew",
   "title": "Talespire Dice Relay",
   "description": "Send Foundry dice roll formulas to Talespire.",
-  "author": "Tew",
+  "author": "TewRocha16",
   "version": "0.1.7",
   "systems": [
     "dnd5e",
@@ -12,13 +12,13 @@
     "minimum": "13.342",
     "verified": "13.348"
   },
-  "url": "https://github.com/VGolets/talespire-dice-test",
-  "manifest": "https://github.com/VGolets/talespire-dice-test/raw/main/module.json",
-  "download": "https://github.com/VGolets/talespire-dice-test/archive/main.zip",
+  "url": "https://github.com/TewRocha16/TalespireDiceRelay",
+  "manifest": "https://raw.githubusercontent.com/TewRocha16/TalespireDiceRelay/refs/heads/main/module.json",
+  "download": "https://github.com/TewRocha16/TalespireDiceRelay/archive/main.zip",
   "esmodules": [
     "scripts/talespire-dice.js"
   ],
   "authors": [
-    { "name": "Tew" }
+    { "name": "TewRocha16" }
   ]
 }
