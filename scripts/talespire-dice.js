@@ -8,40 +8,20 @@ Hooks.once("ready", () => {
       const flavorText = msg.flavor || roll.options?.flavor || "";
       const flavor = flavorText ? parseFlavorText(flavorText) : "dice";
       const formula = parseRollFormula(roll.formula);
-      const setting = game.settings.get("talespire-dice", "rollFoundry");
 
-      if (setting !== 1) {
-        if (formula === "crit") {
-          ui.notifications.error("Talespire currently doesn't support multiplication to calculate critical hits. Please roll damage normally then double it.");
-        } else if (formula === "nodice") {
-          console.log("talespire-dice | No dice roll found.");
-        } else {
-          openTalespireUrl("talespire://dice/" + flavor + ":" + formula);
-        }
-        if (setting === 0) {
-          return false;
-        }
+      if (formula === "crit") {
+        ui.notifications.error("Talespire currently doesn't support multiplication to calculate critical hits. Please roll damage normally then double it.");
+      } else if (formula === "nodice") {
+        console.log("talespire-dice | No dice roll found.");
+      } else {
+        openTalespireUrl("talespire://dice/" + flavor + ":" + formula);
       }
+      return false;
     });
   }
   else {
     ui.notifications.error("Talespire Dice Relay is not compatible with BetterRolls5e.");
   }
-});
-
-Hooks.once("init", () => {
-  game.settings.register("talespire-dice", "rollFoundry", {
-    name: "Where to roll dice:",
-    scope: "client",
-    config: true,
-    default: 2,
-    type: Number,
-    choices: {
-      0: "Talespire",
-      1: "Foundry",
-      2: "Both"
-    }
-  });
 });
 
 function parseFlavorText(flavor) {
