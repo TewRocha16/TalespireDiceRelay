@@ -7,19 +7,19 @@ Hooks.once("ready", () => {
     return;
   }
 
-  Hooks.on("createChatMessage", async (msg) => {
+  Hooks.on("preCreateChatMessage", (msg, data) => {
 
-    const roll = msg.rolls?.[0];
+    const rollData = data.rolls?.[0];
 
-    if (!roll) return;
+    if (!rollData) return;
 
-    const formula = parseRollFormula(roll.formula);
+    const formula = parseRollFormula(rollData.formula);
 
     if (formula === "crit") {
       ui.notifications.error(
         "Talespire doesn't support critical multiplication formulas."
       );
-      return;
+      return false;
     }
 
     if (formula === "nodice") {
@@ -28,8 +28,8 @@ Hooks.once("ready", () => {
 
     openTalespireUrl("talespire://dice/" + formula);
 
-    // remove a mensagem do foundry
-    await msg.delete();
+    // impede a criação da mensagem no foundry
+    return false;
 
   });
 
@@ -41,27 +41,48 @@ function parseRollFormula(formula) {
     return "nodice";
   }
 
+  formula = formula.replace(/\s+/g, "");
+
   // Talespire não suporta multiplicação
   if (formula.includes("*")) {
     return "crit";
   }
 
-  // Nenhum dado encontrado
+  // vantagem
+  if (formula.match(/2d20kh/i)) {
+
+    const mod = extractModifier(formula);
+
+    return `d20${mod}/d20${mod}`;
+  }
+
+  // desvantagem
+  if (formula.match(/2d20kl/i)) {
+
+    const mod = extractModifier(formula);
+
+    return `d20${mod}/d20${mod}`;
+  }
+
+  // nenhum dado encontrado
   if (!formula.match(/\d*d\d+/i)) {
     return "nodice";
   }
 
-  // vantagem/desvantagem
-  if (formula.includes("2d20k")) {
+  return addMods(formula);
+}
 
-    formula = formula.replace(/^2/, "1");
+function extractModifier(formula) {
 
-    formula = addMods(formula);
+  const modMatch = formula.match(/([+-]\d+)/g);
 
-    return formula + "/" + formula;
+  if (!modMatch) {
+    return "";
   }
 
-  return addMods(formula);
+  const total = modMatch.reduce((a, b) => a + parseInt(b), 0);
+
+  return total >= 0 ? `+${total}` : `${total}`;
 }
 
 function addMods(formula) {
