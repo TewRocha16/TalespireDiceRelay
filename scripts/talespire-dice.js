@@ -1,35 +1,33 @@
 Hooks.once("ready", () => {
 
-  console.log("talespire-dice | Initializing talespire-dice");
+  console.log("talespire-dice | Initialized");
 
-  if (game.modules.has("betterrolls5e") && game.modules.get("betterrolls5e")?.active) {
-    ui.notifications.error("Talespire Dice Relay is not compatible with BetterRolls5e.");
-    return;
-  }
+  Hooks.on("createChatMessage", async (msg) => {
 
-  Hooks.on("preCreateChatMessage", (msg, data) => {
+    const roll = msg.rolls?.[0];
 
-    const rollData = data.rolls?.[0];
+    if (!roll) return;
 
-    if (!rollData) return;
+    const formula = parseRollFormula(roll.formula);
 
-    const formula = parseRollFormula(rollData.formula);
+    if (formula === "nodice") return;
 
     if (formula === "crit") {
       ui.notifications.error(
-        "Talespire doesn't support critical multiplication formulas."
+        "Talespire doesn't support multiplication crit formulas."
       );
-      return false;
-    }
-
-    if (formula === "nodice") {
       return;
     }
 
-    openTalespireUrl("talespire://dice/" + formula);
+    location.href = "talespire://dice/" + formula;
 
-    // impede a criação da mensagem no foundry
-    return false;
+    // remove do foundry
+    try {
+      await msg.delete();
+    }
+    catch(err) {
+      console.error(err);
+    }
 
   });
 
@@ -43,13 +41,8 @@ function parseRollFormula(formula) {
 
   formula = formula.replace(/\s+/g, "");
 
-  // Talespire não suporta multiplicação
-  if (formula.includes("*")) {
-    return "crit";
-  }
-
   // vantagem
-  if (formula.match(/2d20kh/i)) {
+  if (/2d20kh/i.test(formula)) {
 
     const mod = extractModifier(formula);
 
@@ -57,16 +50,16 @@ function parseRollFormula(formula) {
   }
 
   // desvantagem
-  if (formula.match(/2d20kl/i)) {
+  if (/2d20kl/i.test(formula)) {
 
     const mod = extractModifier(formula);
 
     return `d20${mod}/d20${mod}`;
   }
 
-  // nenhum dado encontrado
-  if (!formula.match(/\d*d\d+/i)) {
-    return "nodice";
+  // crit
+  if (formula.includes("*")) {
+    return "crit";
   }
 
   return addMods(formula);
@@ -74,13 +67,11 @@ function parseRollFormula(formula) {
 
 function extractModifier(formula) {
 
-  const modMatch = formula.match(/([+-]\d+)/g);
+  const matches = formula.match(/([+-]\d+)/g);
 
-  if (!modMatch) {
-    return "";
-  }
+  if (!matches) return "";
 
-  const total = modMatch.reduce((a, b) => a + parseInt(b), 0);
+  const total = matches.reduce((a, b) => a + parseInt(b), 0);
 
   return total >= 0 ? `+${total}` : `${total}`;
 }
@@ -101,8 +92,4 @@ function addMods(formula) {
   ).reduce((a, b) => a + parseInt(b), 0);
 
   return dice.join("+") + (mods >= 0 ? "+" : "") + mods;
-}
-
-function openTalespireUrl(url) {
-  location.href = url;
 }
