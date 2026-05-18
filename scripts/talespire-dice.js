@@ -76,6 +76,6 @@ function addMods(formula) {
 }
 
 function openTalespireUrl(url) {
-  window.open(url, "_self");
+  location.href = url;
 }
 
