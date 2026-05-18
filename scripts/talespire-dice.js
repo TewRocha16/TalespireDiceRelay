@@ -2,7 +2,26 @@ Hooks.once("ready", () => {
   console.log("talespire-dice | Initializing talespire-dice");
   if (!(game.modules.has("betterrolls5e") && game.modules.get("betterrolls5e").active)) {
     Hooks.on("preCreateChatMessage", (msg, data, options, userId) => {
-      processRolls(msg);
+      const roll = (msg.rolls && msg.rolls.length > 0) ? msg.rolls[0] : null;
+      if (!roll) return;
+
+      const flavorText = msg.flavor || roll.options?.flavor || "";
+      const flavor = flavorText ? parseFlavorText(flavorText) : "dice";
+      const formula = parseRollFormula(roll.formula);
+      const setting = game.settings.get("talespire-dice", "rollFoundry");
+
+      if (setting !== 1) {
+        if (formula === "crit") {
+          ui.notifications.error("Talespire currently doesn't support multiplication to calculate critical hits. Please roll damage normally then double it.");
+        } else if (formula === "nodice") {
+          console.log("talespire-dice | No dice roll found.");
+        } else {
+          openTalespireUrl("talespire://dice/" + flavor + ":" + formula);
+        }
+        if (setting === 0) {
+          return false;
+        }
+      }
     });
   }
   else {
@@ -57,43 +76,6 @@ function addMods(formula) {
 }
 
 function openTalespireUrl(url) {
-  const a = document.createElement("a");
-  a.href = url;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  window.open(url, "_self");
 }
 
-async function processRolls(msg) {
-  let flavor;
-  let formula;
-  let isRoll;
-
-  const roll = (msg.rolls && msg.rolls.length > 0) ? msg.rolls[0] : null;
-
-  if (roll) {
-    const flavorText = msg.flavor || roll.options?.flavor || "";
-    flavor = flavorText ? parseFlavorText(flavorText) : "dice";
-    formula = parseRollFormula(roll.formula);
-    isRoll = true;
-  }
-
-  if (isRoll && game.settings.get("talespire-dice", "rollFoundry") !== 1) {
-    if (formula == "crit") {
-      ui.notifications.error("Talespire currently doesn't support multiplication to calculate critical hits. Please roll damage normally then double it.");
-      return false;
-    }
-    if (formula == "nodice") {
-      console.log("talespire-dice | No dice roll found.");
-    }
-    else {
-      openTalespireUrl("talespire://dice/" + flavor + ":" + formula);
-      if (game.settings.get("talespire-dice", "rollFoundry") == 0) {
-        return false;
-      }
-    }
-  }
-  else {
-    console.log("talespire-dice | No dice roll found.");
-  }
-}
