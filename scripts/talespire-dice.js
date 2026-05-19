@@ -19,9 +19,9 @@ Hooks.once("ready", () => {
       return;
     }
 
-    location.href = "talespire://dice/" + formula;
+    openTalespireUrl("talespire://dice/" + formula);
 
-    // remove do foundry
+    // remove imediatamente a mensagem do foundry
     try {
       await msg.delete();
     }
@@ -57,7 +57,7 @@ function parseRollFormula(formula) {
     return `d20${mod}/d20${mod}`;
   }
 
-  // crit
+  // crítico
   if (formula.includes("*")) {
     return "crit";
   }
@@ -92,4 +92,18 @@ function addMods(formula) {
   ).reduce((a, b) => a + parseInt(b), 0);
 
   return dice.join("+") + (mods >= 0 ? "+" : "") + mods;
+}
+
+function openTalespireUrl(url) {
+
+  const iframe = document.createElement("iframe");
+
+  iframe.style.display = "none";
+  iframe.src = url;
+
+  document.body.appendChild(iframe);
+
+  setTimeout(() => {
+    iframe.remove();
+  }, 1000);
 }
