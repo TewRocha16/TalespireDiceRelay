@@ -13,19 +13,16 @@ Hooks.once("ready", () => {
     if (formula === "nodice") return;
 
     if (formula === "crit") {
-      ui.notifications.error(
-        "Talespire doesn't support multiplication crit formulas."
-      );
+      ui.notifications.error("Talespire doesn't support multiplication crit formulas.");
       return;
     }
 
     openTalespireUrl("talespire://dice/" + formula);
 
-    // remove imediatamente a mensagem do foundry
     try {
       await msg.delete();
     }
-    catch(err) {
+    catch (err) {
       console.error(err);
     }
 
@@ -35,37 +32,27 @@ Hooks.once("ready", () => {
 
 function parseRollFormula(formula) {
 
-  if (!formula) {
-    return "nodice";
-  }
+  if (!formula) return "nodice";
 
   formula = formula.replace(/\s+/g, "");
 
-  // vantagem
-  if (/2d20kh/i.test(formula)) {
+  if (formula.includes("*")) return "crit";
 
+  // Vantagem/desvantagem do Foundry: 2d20kh / 2d20kl
+  // TaleSpire: duas rolagens separadas iguais
+  if (/2d20k[hl]/i.test(formula)) {
     const mod = extractModifier(formula);
-
     return `d20${mod}/d20${mod}`;
   }
 
-  // desvantagem
-  if (/2d20kl/i.test(formula)) {
-
-    const mod = extractModifier(formula);
-
-    return `d20${mod}/d20${mod}`;
-  }
-
-  // crítico
-  if (formula.includes("*")) {
-    return "crit";
-  }
+  if (!formula.match(/\d*d\d+/i)) return "nodice";
 
   return addMods(formula);
 }
 
 function extractModifier(formula) {
+
+  formula = formula.replace(/2d20k[hl]/gi, "");
 
   const matches = formula.match(/([+-]\d+)/g);
 
@@ -73,7 +60,9 @@ function extractModifier(formula) {
 
   const total = matches.reduce((a, b) => a + parseInt(b), 0);
 
-  return total >= 0 ? `+${total}` : `${total}`;
+  if (total === 0) return "";
+
+  return total > 0 ? `+${total}` : `${total}`;
 }
 
 function addMods(formula) {
