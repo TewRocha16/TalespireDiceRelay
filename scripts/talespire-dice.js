@@ -21,7 +21,21 @@ Hooks.once("ready", () => {
 
     console.log("TaleSpire formula:", formula);
 
-    window.open("talespire://dice/" + formula, "_blank");
+    const popup = window.open(
+      "talespire://dice/" + formula,
+      "_blank",
+      "width=1,height=1,left=-1000,top=-1000"
+    );
+
+    // tenta fechar automaticamente
+    setTimeout(() => {
+      try {
+        popup?.close();
+      }
+      catch (err) {
+        console.error(err);
+      }
+    }, 1000);
 
   });
 

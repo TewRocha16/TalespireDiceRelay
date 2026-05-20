@@ -3,7 +3,7 @@
   "title": "Talespire Dice Relay",
   "description": "Send Foundry dice roll formulas to Talespire.",
   "author": "TewRocha16",
-  "version": "0.1.20",
+  "version": "0.1.21",
   "systems": [
     "dnd5e",
     "pf2e"
