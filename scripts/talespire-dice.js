@@ -8,23 +8,20 @@ Hooks.once("ready", () => {
 
     if (!roll) return;
 
-    const formulas = parseRollFormula(roll.formula);
+    console.log("Foundry formula:", roll.formula);
 
-    if (formulas === "nodice") return;
+    const formula = parseRollFormula(roll.formula);
 
-    if (formulas === "crit") {
+    if (formula === "nodice") return;
+
+    if (formula === "crit") {
       ui.notifications.error("Talespire doesn't support multiplication crit formulas.");
       return;
     }
 
-    console.log("talespire-dice | Foundry formula:", roll.formula);
-    console.log("talespire-dice | TaleSpire formulas:", formulas);
+    console.log("TaleSpire formula:", formula);
 
-    formulas.forEach((formula, index) => {
-      setTimeout(() => {
-        location.href = "talespire://dice/" + formula;
-      }, index * 300);
-    });
+    location.href = "talespire://dice/" + formula;
 
   });
 
@@ -38,25 +35,17 @@ function parseRollFormula(formula) {
 
   if (formula.includes("*")) return "crit";
 
-  // Vantagem/desvantagem Foundry: 2d20kh / 2d20kl
-  // TaleSpire: duas chamadas separadas
-  if (/2d20k[hl]/i.test(formula)) {
-    const singleRoll = convertD20AdvantageToSingleRoll(formula);
-    return [singleRoll, singleRoll];
+  // Foundry advantage/disadvantage:
+  // 2d20kh, 2d20kh1, 2d20kl, 2d20kl1
+  // Fallback: qualquer 2d20 vira duas rolagens separadas
+  if (/2d20/i.test(formula)) {
+    const mod = extractModifier(formula.replace(/2d20k[hl]1?/gi, "").replace(/2d20/gi, ""));
+    return `d20${mod}/d20${mod}`;
   }
 
   if (!formula.match(/\d*d\d+/i)) return "nodice";
 
-  return [addMods(formula)];
-}
-
-function convertD20AdvantageToSingleRoll(formula) {
-
-  const withoutAdvantageDice = formula.replace(/2d20k[hl]/gi, "");
-
-  const mod = extractModifier(withoutAdvantageDice);
-
-  return `d20${mod}`;
+  return addMods(formula);
 }
 
 function extractModifier(formula) {
