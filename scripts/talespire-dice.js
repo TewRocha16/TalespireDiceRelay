@@ -13,7 +13,9 @@ Hooks.once("ready", () => {
     if (formula === "nodice") return;
 
     if (formula === "crit") {
-      ui.notifications.error("Talespire doesn't support multiplication crit formulas.");
+      ui.notifications.error(
+        "Talespire doesn't support multiplication crit formulas."
+      );
       return;
     }
 
@@ -36,15 +38,20 @@ function parseRollFormula(formula) {
 
   formula = formula.replace(/\s+/g, "");
 
+  // crítico
   if (formula.includes("*")) {
     return "crit";
   }
 
+  // vantagem/desvantagem
   if (/2d20k[hl]/i.test(formula)) {
+
     const mod = extractModifier(formula);
+
     return `d20${mod}/d20${mod}`;
   }
 
+  // sem dados
   if (!formula.match(/\d*d\d+/i)) {
     return "nodice";
   }
@@ -87,7 +94,7 @@ function addMods(formula) {
 
 function openTalespireUrl(url) {
 
-  const popup = window.open(url, "_blank");
+  const popup = window.open(url, "_self");
 
   setTimeout(() => {
     try {
