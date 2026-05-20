@@ -1,10 +1,10 @@
 Hooks.once("ready", () => {
 
-  console.log("talespire-dice | Initialized");
+  console.log("talespire-dice | Initialized for Foundry 12");
 
   Hooks.on("createChatMessage", (msg) => {
 
-    const roll = msg.rolls?.[0];
+    const roll = msg.rolls?.[0] ?? msg.roll;
 
     if (!roll) return;
 
@@ -27,7 +27,6 @@ Hooks.once("ready", () => {
       "width=1,height=1,left=-1000,top=-1000"
     );
 
-    // tenta fechar automaticamente
     setTimeout(() => {
       try {
         popup?.close();
@@ -49,6 +48,8 @@ function parseRollFormula(formula) {
 
   if (formula.includes("*")) return "crit";
 
+  // vantagem/desvantagem
+  // Foundry: 2d20kh, 2d20kh1, 2d20kl, 2d20kl1
   if (/2d20/i.test(formula)) {
 
     const mod = extractModifier(

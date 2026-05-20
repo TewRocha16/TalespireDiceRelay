@@ -3,22 +3,24 @@
   "title": "Talespire Dice Relay",
   "description": "Send Foundry dice roll formulas to Talespire.",
   "author": "TewRocha16",
-  "version": "0.1.21",
+  "version": "0.1.22.12",
   "systems": [
     "dnd5e",
     "pf2e"
   ],
   "compatibility": {
-    "minimum": "13.342",
-    "verified": "13.348"
+    "minimum": "12",
+    "verified": "12"
   },
   "url": "https://github.com/TewRocha16/TalespireDiceRelay",
-  "manifest": "https://raw.githubusercontent.com/TewRocha16/TalespireDiceRelay/refs/heads/main/module.json",
-  "download": "https://github.com/TewRocha16/TalespireDiceRelay/archive/main.zip",
+  "manifest": "https://raw.githubusercontent.com/TewRocha16/TalespireDiceRelay/refs/heads/foundry-12/module.json",
+  "download": "https://github.com/TewRocha16/TalespireDiceRelay/archive/refs/heads/foundry-12.zip",
   "esmodules": [
     "scripts/talespire-dice.js"
   ],
   "authors": [
-    { "name": "TewRocha16" }
+    {
+      "name": "TewRocha16"
+    }
   ]
 }
