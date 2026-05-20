@@ -19,7 +19,6 @@ Hooks.once("ready", () => {
 
     openTalespireUrl("talespire://dice/" + formula);
 
-    // remove a mensagem do foundry
     try {
       await msg.delete();
     }
@@ -37,20 +36,15 @@ function parseRollFormula(formula) {
 
   formula = formula.replace(/\s+/g, "");
 
-  // crítico
   if (formula.includes("*")) {
     return "crit";
   }
 
-  // vantagem/desvantagem
   if (/2d20k[hl]/i.test(formula)) {
-
     const mod = extractModifier(formula);
-
     return `d20${mod}/d20${mod}`;
   }
 
-  // sem dados
   if (!formula.match(/\d*d\d+/i)) {
     return "nodice";
   }
@@ -93,14 +87,14 @@ function addMods(formula) {
 
 function openTalespireUrl(url) {
 
-  const a = document.createElement("a");
+  const popup = window.open(url, "_blank");
 
-  a.href = url;
-  a.style.display = "none";
-
-  document.body.appendChild(a);
-
-  a.click();
-
-  a.remove();
+  setTimeout(() => {
+    try {
+      popup?.close();
+    }
+    catch (err) {
+      console.error(err);
+    }
+  }, 250);
 }
