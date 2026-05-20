@@ -19,7 +19,7 @@ Hooks.once("ready", () => {
       return;
     }
 
-    openTalespireUrl("talespire://dice/" + formula);
+    location.href = "talespire://dice/" + formula;
 
     try {
       await msg.delete();
@@ -34,26 +34,31 @@ Hooks.once("ready", () => {
 
 function parseRollFormula(formula) {
 
-  if (!formula) return "nodice";
+  if (!formula) {
+    return "nodice";
+  }
 
   formula = formula.replace(/\s+/g, "");
 
-  // crítico
-  if (formula.includes("*")) {
-    return "crit";
-  }
-
-  // vantagem/desvantagem
-  if (/2d20k[hl]/i.test(formula)) {
+  // vantagem
+  if (/2d20kh/i.test(formula)) {
 
     const mod = extractModifier(formula);
 
     return `d20${mod}/d20${mod}`;
   }
 
-  // sem dados
-  if (!formula.match(/\d*d\d+/i)) {
-    return "nodice";
+  // desvantagem
+  if (/2d20kl/i.test(formula)) {
+
+    const mod = extractModifier(formula);
+
+    return `d20${mod}/d20${mod}`;
+  }
+
+  // crit
+  if (formula.includes("*")) {
+    return "crit";
   }
 
   return addMods(formula);
@@ -61,17 +66,13 @@ function parseRollFormula(formula) {
 
 function extractModifier(formula) {
 
-  formula = formula.replace(/2d20k[hl]/gi, "");
-
   const matches = formula.match(/([+-]\d+)/g);
 
   if (!matches) return "";
 
   const total = matches.reduce((a, b) => a + parseInt(b), 0);
 
-  if (total === 0) return "";
-
-  return total > 0 ? `+${total}` : `${total}`;
+  return total >= 0 ? `+${total}` : `${total}`;
 }
 
 function addMods(formula) {
@@ -90,18 +91,4 @@ function addMods(formula) {
   ).reduce((a, b) => a + parseInt(b), 0);
 
   return dice.join("+") + (mods >= 0 ? "+" : "") + mods;
-}
-
-function openTalespireUrl(url) {
-
-  const popup = window.open(url, "_self");
-
-  setTimeout(() => {
-    try {
-      popup?.close();
-    }
-    catch (err) {
-      console.error(err);
-    }
-  }, 250);
 }
