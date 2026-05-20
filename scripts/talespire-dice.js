@@ -2,7 +2,19 @@ Hooks.once("ready", () => {
 
   console.log("talespire-dice | Initialized");
 
+  let electronShell = null;
+
+  try {
+    electronShell = window.require("electron").shell;
+    console.log("talespire-dice | Electron shell loaded");
+  }
+  catch (err) {
+    console.error("talespire-dice | Could not load Electron shell", err);
+  }
+
   Hooks.on("createChatMessage", (msg) => {
+
+    if (!electronShell) return;
 
     const roll = msg.rolls?.[0];
 
@@ -21,7 +33,7 @@ Hooks.once("ready", () => {
 
     console.log("TaleSpire formula:", formula);
 
-    location.href = "talespire://dice/" + formula;
+    electronShell.openExternal("talespire://dice/" + formula);
 
   });
 
@@ -37,9 +49,15 @@ function parseRollFormula(formula) {
 
   // Foundry advantage/disadvantage:
   // 2d20kh, 2d20kh1, 2d20kl, 2d20kl1
-  // Fallback: qualquer 2d20 vira duas rolagens separadas
+  // qualquer 2d20 vira duas rolagens separadas
   if (/2d20/i.test(formula)) {
-    const mod = extractModifier(formula.replace(/2d20k[hl]1?/gi, "").replace(/2d20/gi, ""));
+
+    const mod = extractModifier(
+      formula
+        .replace(/2d20k[hl]1?/gi, "")
+        .replace(/2d20/gi, "")
+    );
+
     return `d20${mod}/d20${mod}`;
   }
 
