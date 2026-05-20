@@ -19,6 +19,7 @@ Hooks.once("ready", () => {
 
     openTalespireUrl("talespire://dice/" + formula);
 
+    // remove a mensagem do foundry
     try {
       await msg.delete();
     }
@@ -36,16 +37,23 @@ function parseRollFormula(formula) {
 
   formula = formula.replace(/\s+/g, "");
 
-  if (formula.includes("*")) return "crit";
+  // crítico
+  if (formula.includes("*")) {
+    return "crit";
+  }
 
-  // Vantagem/desvantagem do Foundry: 2d20kh / 2d20kl
-  // TaleSpire: duas rolagens separadas iguais
+  // vantagem/desvantagem
   if (/2d20k[hl]/i.test(formula)) {
+
     const mod = extractModifier(formula);
+
     return `d20${mod}/d20${mod}`;
   }
 
-  if (!formula.match(/\d*d\d+/i)) return "nodice";
+  // sem dados
+  if (!formula.match(/\d*d\d+/i)) {
+    return "nodice";
+  }
 
   return addMods(formula);
 }
@@ -85,14 +93,14 @@ function addMods(formula) {
 
 function openTalespireUrl(url) {
 
-  const iframe = document.createElement("iframe");
+  const a = document.createElement("a");
 
-  iframe.style.display = "none";
-  iframe.src = url;
+  a.href = url;
+  a.style.display = "none";
 
-  document.body.appendChild(iframe);
+  document.body.appendChild(a);
 
-  setTimeout(() => {
-    iframe.remove();
-  }, 1000);
+  a.click();
+
+  a.remove();
 }
