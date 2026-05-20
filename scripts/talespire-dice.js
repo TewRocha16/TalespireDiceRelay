@@ -2,7 +2,7 @@ Hooks.once("ready", () => {
 
   console.log("talespire-dice | Initialized");
 
-  Hooks.on("createChatMessage", async (msg) => {
+  Hooks.on("createChatMessage", (msg) => {
 
     const roll = msg.rolls?.[0];
 
@@ -13,20 +13,14 @@ Hooks.once("ready", () => {
     if (formula === "nodice") return;
 
     if (formula === "crit") {
-      ui.notifications.error(
-        "Talespire doesn't support multiplication crit formulas."
-      );
+      ui.notifications.error("Talespire doesn't support multiplication crit formulas.");
       return;
     }
 
-    location.href = "talespire://dice/" + formula;
+    console.log("talespire-dice | Foundry formula:", roll.formula);
+    console.log("talespire-dice | TaleSpire formula:", formula);
 
-    try {
-      await msg.delete();
-    }
-    catch (err) {
-      console.error(err);
-    }
+    location.href = "talespire://dice/" + formula;
 
   });
 
@@ -34,45 +28,44 @@ Hooks.once("ready", () => {
 
 function parseRollFormula(formula) {
 
-  if (!formula) {
-    return "nodice";
-  }
+  if (!formula) return "nodice";
 
   formula = formula.replace(/\s+/g, "");
 
-  // vantagem
-  if (/2d20kh/i.test(formula)) {
+  if (formula.includes("*")) return "crit";
 
-    const mod = extractModifier(formula);
-
-    return `d20${mod}/d20${mod}`;
+  // Vantagem/desvantagem Foundry: 2d20kh / 2d20kl
+  // TaleSpire: duas rolagens separadas iguais
+  if (/2d20k[hl]/i.test(formula)) {
+    const singleRoll = convertD20AdvantageToSingleRoll(formula);
+    return `${singleRoll}/${singleRoll}`;
   }
 
-  // desvantagem
-  if (/2d20kl/i.test(formula)) {
-
-    const mod = extractModifier(formula);
-
-    return `d20${mod}/d20${mod}`;
-  }
-
-  // crit
-  if (formula.includes("*")) {
-    return "crit";
-  }
+  if (!formula.match(/\d*d\d+/i)) return "nodice";
 
   return addMods(formula);
 }
 
+function convertD20AdvantageToSingleRoll(formula) {
+
+  const withoutAdvantageDice = formula.replace(/2d20k[hl]/gi, "");
+
+  const mod = extractModifier(withoutAdvantageDice);
+
+  return `d20${mod}`;
+}
+
 function extractModifier(formula) {
 
-  const matches = formula.match(/([+-]\d+)/g);
+  const matches = formula.match(/([+-]\d+)(?!d)/g);
 
   if (!matches) return "";
 
   const total = matches.reduce((a, b) => a + parseInt(b), 0);
 
-  return total >= 0 ? `+${total}` : `${total}`;
+  if (total === 0) return "";
+
+  return total > 0 ? `+${total}` : `${total}`;
 }
 
 function addMods(formula) {
@@ -83,12 +76,16 @@ function addMods(formula) {
   const dice = Array.from(
     formula.matchAll(/(\d*d\d+)/gi),
     i => i[0]
-  );
+  ).map(die => die.replace(/^1(?=d)/i, ""));
 
   const mods = Array.from(
     formula.matchAll(/([+-]\d+)(?!d)/gi),
     i => i[0]
   ).reduce((a, b) => a + parseInt(b), 0);
 
-  return dice.join("+") + (mods >= 0 ? "+" : "") + mods;
+  if (!dice.length) return "nodice";
+
+  if (mods === 0) return dice.join("+");
+
+  return dice.join("+") + (mods > 0 ? "+" : "") + mods;
 }
